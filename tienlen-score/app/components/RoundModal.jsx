@@ -111,11 +111,12 @@ export default function RoundModal({ players, settings, onConfirm, onClose }) {
               Thứ tự kết thúc — bấm theo thứ tự
             </p>
 
-            {/* Rank slots preview */}
+            {/* Rank slots — nhốt toggle tích hợp ngay tại slot */}
             <div className="grid grid-cols-4 gap-1.5 mb-3">
               {[0, 1, 2, 3].map((rank) => {
                 const playerIdx = rankOrder[rank];
                 const c = playerIdx !== null ? PLAYER_COLORS[playerIdx] : null;
+                const isNhot = playerIdx !== null && nhotPlayers.includes(playerIdx);
                 return (
                   <div key={rank} className={`rounded-xl border-2 p-2 text-center transition-all
                     ${playerIdx !== null
@@ -127,10 +128,26 @@ export default function RoundModal({ players, settings, onConfirm, onClose }) {
                     <div className={`text-xs font-bold mt-0.5 ${RANK_SCORES[rank] > 0 ? 'text-green-600' : 'text-red-500'}`}>
                       {RANK_SCORES[rank] > 0 ? `+${RANK_SCORES[rank]}` : RANK_SCORES[rank]}
                     </div>
-                    {playerIdx !== null && (
-                      <div className={`text-xs font-semibold truncate mt-1 ${c.text}`}>
-                        {players[playerIdx]}
-                      </div>
+                    {playerIdx !== null ? (
+                      <>
+                        <div className={`text-xs font-semibold truncate mt-1 ${c.text}`}>
+                          {players[playerIdx]}
+                        </div>
+                        {/* Nhốt toggle — chỉ cho rank 2,3,4 */}
+                        {rank > 0 && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); toggleNhot(playerIdx); }}
+                            className={`mt-1.5 w-full text-xs py-0.5 rounded-md border transition-all font-medium
+                              ${isNhot
+                                ? 'bg-gray-700 text-white border-gray-700'
+                                : 'bg-white text-gray-400 border-gray-300 hover:border-gray-500'}`}
+                          >
+                            {isNhot ? '🔒 Nhốt' : '🔒'}
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-xs text-gray-300 mt-1">—</div>
                     )}
                   </div>
                 );
@@ -165,38 +182,6 @@ export default function RoundModal({ players, settings, onConfirm, onClose }) {
               })}
             </div>
           </div>
-
-          {/* NHỐT — chỉ hiện sau khi assign đủ */}
-          {allRanked && (
-            <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                🔒 Nhốt bài <span className="text-gray-300 font-normal normal-case">(−{settings.nhotPenalty}đ thêm cho nhất)</span>
-              </p>
-              <div className="flex gap-2">
-                {[1, 2, 3].map((rank) => {
-                  const playerIdx = rankOrder[rank];
-                  if (playerIdx === null) return null;
-                  const c = PLAYER_COLORS[playerIdx];
-                  const active = nhotPlayers.includes(playerIdx);
-                  return (
-                    <button
-                      key={rank}
-                      onClick={() => toggleNhot(playerIdx)}
-                      className={`flex-1 py-2.5 rounded-xl border-2 font-bold text-sm transition-all flex flex-col items-center gap-0.5
-                        ${active
-                          ? `${c.bg} ${c.border} ${c.text}`
-                          : 'border-gray-200 bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
-                    >
-                      <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs text-white ${active ? c.badge : 'bg-gray-300'}`}>
-                        {PLAYER_COLORS[playerIdx].label}
-                      </span>
-                      <span className="text-xs font-medium truncate w-full text-center px-1">{players[playerIdx]}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* CHẶT HEO */}
           {allRanked && (
