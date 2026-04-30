@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0fdf4;
+  min-height: 100vh;
+}
+
+.tab-active {
+  @apply border-b-2 border-green-600 text-green-700 font-semibold;
+}
+
+.tab-inactive {
+  @apply border-b-2 border-transparent text-gray-500 hover:text-gray-700;
+}
+
+.player-card {
+  @apply bg-white rounded-2xl shadow-md p-4 flex flex-col items-center gap-1 border-2 border-transparent transition-all;
+}
+
+.player-card.winner-glow {
+  @apply border-yellow-400 shadow-yellow-200;
+  box-shadow: 0 0 16px 2px #fde68a;
+}
+
+.score-positive {
+  @apply text-green-600 font-bold;
+}
+
+.score-negative {
+  @apply text-red-500 font-bold;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.modal-overlay {
+  @apply fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center;
+}
+
+.modal-box {
+  @apply bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto;
+}
+
+.btn-primary {
+  @apply bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3 px-6 rounded-xl transition-colors;
+}
+
+.btn-danger {
+  @apply bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition-colors;
+}
+
+.btn-ghost {
+  @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-xl transition-colors;
+}
+
+.badge-nhot {
+  @apply text-xs bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full;
+}
+
+.badge-double {
+  @apply text-xs bg-orange-100 text-orange-700 font-bold px-2 py-0.5 rounded-full;
+}
+
+.badge-win {
+  @apply text-xs bg-yellow-100 text-yellow-700 font-bold px-2 py-0.5 rounded-full;
+}
