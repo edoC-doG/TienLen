@@ -18,16 +18,16 @@ export const RANK_ICONS  = ['🥇', '🥈', '🥉', '💀'];
 export function calculateDeltas(rankOrder, chatHeoEvents, settings, nhotPlayers = [], denCaLangPlayers = []) {
   const deltas = [0, 0, 0, 0];
 
-  // Base rank scores
+  // Base rank scores — nhốt players bị bỏ qua, chỉ tính nhốt penalty riêng
+  const firstPlace = rankOrder[0];
   for (let rank = 0; rank < 4; rank++) {
     const player = rankOrder[rank];
-    if (player !== null && player !== undefined) {
-      deltas[player] += RANK_SCORES[rank];
-    }
+    if (player === null || player === undefined) continue;
+    if (nhotPlayers.includes(player)) continue; // nhốt: không tính rank score
+    deltas[player] += RANK_SCORES[rank];
   }
 
-  // Nhốt: extra penalty paid to 1st place
-  const firstPlace = rankOrder[0];
+  // Nhốt: chỉ tính tiền nhốt, trả cho người nhất
   if (firstPlace !== null && firstPlace !== undefined) {
     for (const player of nhotPlayers) {
       if (player !== firstPlace) {
