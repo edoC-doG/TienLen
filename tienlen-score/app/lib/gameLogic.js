@@ -7,33 +7,35 @@ export const RANK_SCORES = [2, 1, -1, -2];
 export const RANK_LABELS = ['Nhất', 'Nhì', 'Ba', 'Chót'];
 export const RANK_ICONS  = ['🥇', '🥈', '🥉', '💀'];
 
+// Điểm theo số người chơi thật (không nhốt):
+// 4 người: +2,+1,−1,−2 | 3 người: +2,+1,−1 | 2 người: +2,−2 | 1 người: +2
+const EFFECTIVE_SCORES = [[2], [2, -2], [2, 1, -1], [2, 1, -1, -2]];
+
 /**
  * Calculate score deltas for a round.
  * @param {(number|null)[]} rankOrder - [p1stIdx, p2ndIdx, p3rdIdx, p4thIdx]
  * @param {Array<{cutter,victim,type}>} chatHeoEvents
  * @param {object} settings
- * @param {number[]} nhotPlayers   - player indices who were nhốt (extra penalty to 1st)
+ * @param {number[]} nhotPlayers   - player indices who were nhốt (chỉ tính tiền nhốt)
  * @param {number[]} denCaLangPlayers - player indices who pay everyone
  */
 export function calculateDeltas(rankOrder, chatHeoEvents, settings, nhotPlayers = [], denCaLangPlayers = []) {
   const deltas = [0, 0, 0, 0];
 
-  // Base rank scores — nhốt players bị bỏ qua, chỉ tính nhốt penalty riêng
-  const firstPlace = rankOrder[0];
-  for (let rank = 0; rank < 4; rank++) {
-    const player = rankOrder[rank];
-    if (player === null || player === undefined) continue;
-    if (nhotPlayers.includes(player)) continue; // nhốt: không tính rank score
-    deltas[player] += RANK_SCORES[rank];
+  // Lọc người chơi thật (không nhốt) theo thứ tự rank
+  const realPlayers = rankOrder.filter(p => p !== null && p !== undefined && !nhotPlayers.includes(p));
+  const scores = EFFECTIVE_SCORES[realPlayers.length - 1] ?? [];
+
+  for (let i = 0; i < realPlayers.length; i++) {
+    deltas[realPlayers[i]] += scores[i];
   }
 
-  // Nhốt: chỉ tính tiền nhốt, trả cho người nhất
-  if (firstPlace !== null && firstPlace !== undefined) {
+  // Nhốt: chỉ tính tiền nhốt, trả cho người nhất (người đầu tiên không nhốt)
+  const firstPlace = realPlayers[0];
+  if (firstPlace !== undefined) {
     for (const player of nhotPlayers) {
-      if (player !== firstPlace) {
-        deltas[player] -= settings.nhotPenalty;
-        deltas[firstPlace] += settings.nhotPenalty;
-      }
+      deltas[player] -= settings.nhotPenalty;
+      deltas[firstPlace] += settings.nhotPenalty;
     }
   }
 
@@ -62,10 +64,19 @@ export function calculateDeltas(rankOrder, chatHeoEvents, settings, nhotPlayers 
 export function describeRound(round, players, settings) {
   const lines = [];
 
+  const nhotSet = new Set(round.nhotPlayers ?? []);
+  const realPlayers = (round.rankOrder ?? []).filter(p => p !== null && !nhotSet.has(p));
+  const scores = EFFECTIVE_SCORES[realPlayers.length - 1] ?? [];
+
   for (let rank = 0; rank < 4; rank++) {
     const p = round.rankOrder[rank];
-    if (p !== null && p !== undefined) {
-      lines.push(`  ${RANK_ICONS[rank]} ${RANK_LABELS[rank]}: ${players[p]} (${RANK_SCORES[rank] > 0 ? '+' : ''}${RANK_SCORES[rank]})`);
+    if (p === null || p === undefined) continue;
+    if (nhotSet.has(p)) {
+      lines.push(`  🔒 ${players[p]} nhốt bài (−${round.settings?.nhotPenalty ?? '?'})`);
+    } else {
+      const ri = realPlayers.indexOf(p);
+      const sc = scores[ri] ?? 0;
+      lines.push(`  ${RANK_ICONS[rank]} ${players[p]}: ${sc > 0 ? '+' : ''}${sc}`);
     }
   }
 
